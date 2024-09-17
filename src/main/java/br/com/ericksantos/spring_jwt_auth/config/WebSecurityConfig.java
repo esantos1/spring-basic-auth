@@ -1,17 +1,24 @@
-package br.com.ericksantos.spring_jwt_auth.configs;
+package br.com.ericksantos.spring_jwt_auth.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 public class WebSecurityConfig {
+
+    @Autowired
+    private SecurityDatabaseService securityService;
+
+    @Autowired
+    public void globalUserDetails(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(securityService).passwordEncoder(NoOpPasswordEncoder.getInstance());
+    }
 
     // Configura a cadeia de filtros de segurança
     @Bean
@@ -24,13 +31,13 @@ public class WebSecurityConfig {
                 .requestMatchers("/users").hasAnyRole("MANAGERS", "USERS")
                 .anyRequest().authenticated()
                 )
-                .formLogin().permitAll();
+                .httpBasic(); //substitui o form de login por requisição http
 
         return http.build();
     }
 
     // Define o serviço de usuários em memória
-    @Bean
+    /*  @Bean
     public UserDetailsService userDetailsService() {
         UserDetails user = User.builder()
                 .username("user")
@@ -46,7 +53,7 @@ public class WebSecurityConfig {
 
         return new InMemoryUserDetailsManager(user, admin);
     }
-
+     */
     // Define o codificador de senhas BCrypt
     // @Bean
     // public PasswordEncoder passwordEncoder() {
